@@ -2,15 +2,15 @@
 
 import os
 from pathlib import Path
-import pymysql
-pymysql.install_as_MySQLdb()
-
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-your-secret-key' 
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+# --- SECURITY ---
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key')
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'fastfood.onrender.com').split(',')
+
 ROOT_URLCONF = 'fastfood_project.urls'
 WSGI_APPLICATION = 'fastfood_project.wsgi.application'
 
@@ -22,12 +22,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'food_app', 
+    'food_app',
 ]
 
 # --- MIDDLEWARE ---
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -40,7 +41,7 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'templates', BASE_DIR / 'food_app' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -53,57 +54,26 @@ TEMPLATES = [
     },
 ]
 
+# --- DATABASE ---
+# Uses Render's DATABASE_URL (PostgreSQL) when available.
+# Falls back to local SQLite if DATABASE_URL isn't set (e.g. local dev).
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+    )
 }
 
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'fastfood_db',
-#         'USER': 'root',
-#         'PASSWORD': '',
-#         'HOST': '127.0.0.1',
-#         'PORT': '3306',
-#         'OPTIONS': {
-#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-#         }
-#     }
-# }
-
-
-
-# fastfood_db
 # --- STATIC & MEDIA FILES ---
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # --- AUTHENTICATION ---
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-# --- Added by assistant: ensure templates/static/media paths are configured ---
-try:
-    from pathlib import Path as _Path
-    BASE_DIR = _Path(__file__).resolve().parent.parent
-    # ensure TEMPLATES dirs include project and app templates
-    if 'TEMPLATES' in globals():
-        try:
-            TEMPLATES[0]['DIRS'] = [BASE_DIR / 'templates', BASE_DIR / 'food_app' / 'templates']
-        except Exception:
-            pass
-    STATIC_URL = globals().get('STATIC_URL', '/static/')
-    STATICFILES_DIRS = globals().get('STATICFILES_DIRS', []) + [BASE_DIR / 'static']
-    MEDIA_URL = globals().get('MEDIA_URL', '/media/')
-    MEDIA_ROOT = globals().get('MEDIA_ROOT', BASE_DIR / 'media')
-except Exception:
-    pass
-
-
-
-STATIC_ROOT = BASE_DIR / 'staticfiles'
