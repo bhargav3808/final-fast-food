@@ -1,0 +1,14 @@
+
+:root{
+  --foodie-orange: #ff7a00;
+  --foodie-orange-2: #ff9a2e;
+  --muted: #6c757d;
+}
+body { background: #fffaf6; color: #333; }
+.card.product-card { border: none; border-radius: 12px; transition: transform .15s ease, box-shadow .15s ease; }
+.card.product-card:hover { transform: translateY(-6px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+.price-badge { background: linear-gradient(90deg,var(--foodie-orange),var(--foodie-orange-2)); color: #fff; padding: .35rem .6rem; border-radius: 6px; font-weight:700; }
+.btn-warning.custom { background: var(--foodie-orange); border: none; color: #fff; }
+.navbar-brand { letter-spacing: .6px; }
+.table img { border-radius: 8px; }
+.alert-success { background: linear-gradient(90deg,#dff6ea,#eafff0); border-color: transparent; }
