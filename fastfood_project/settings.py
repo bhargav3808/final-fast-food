@@ -9,7 +9,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- SECURITY ---
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'fastfood.onrender.com').split(',')
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS', 'fast-food-ykjf.onrender.com,localhost,127.0.0.1'
+).split(',')
+
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    'CSRF_TRUSTED_ORIGINS', 'https://fast-food-ykjf.onrender.com'
+).split(',')
 
 ROOT_URLCONF = 'fastfood_project.urls'
 WSGI_APPLICATION = 'fastfood_project.wsgi.application'
