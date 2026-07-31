@@ -49,7 +49,8 @@
       xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) {
           if (xhr.status >= 200 && xhr.status < 300) {
-            window.location.href = '/login/';
+            const response = JSON.parse(xhr.responseText || '{}');
+            window.location.href = response.redirect_to || '/';
           } else {
             window.location.reload();
           }

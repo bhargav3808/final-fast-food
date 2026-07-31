@@ -404,9 +404,18 @@ def user_register(request):
         username = request.POST.get("username")
         email = request.POST.get("email")
         password = request.POST.get("password")
+        is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+
+        if not username or not password:
+            messages.error(request, "Username and password are required!")
+            if is_ajax:
+                return JsonResponse({"success": False, "message": "Username and password are required!"}, status=400)
+            return redirect("register")
 
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists!")
+            if is_ajax:
+                return JsonResponse({"success": False, "message": "Username already exists!"}, status=400)
             return redirect("register")
 
         user = User.objects.create_user(
@@ -415,13 +424,13 @@ def user_register(request):
             password=password
         )
 
-        UserProfile.objects.create(
-            user=user,
-            role="customer"
-        )
+        login(request, user)
+        messages.success(request, "Registration successful! Welcome aboard.")
 
-        messages.success(request, "Registration successful! Please log in.")
-        return redirect("login")
+        if is_ajax:
+            return JsonResponse({"success": True, "redirect_to": "/"})
+
+        return redirect("home")
 
     return render(request, "food_app/register.html")
 # ============ DELIVERY SYSTEM VIEWS ============
