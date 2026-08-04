@@ -11,10 +11,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils import timezone
 from django.db.models import Sum
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
 from .forms import DeliveryAddressForm
-import io
 
 
 def generate_delivery_code():
@@ -113,34 +110,6 @@ def place_order(request):
         delivery_code=generate_delivery_code(),
     )
 
-    # ---- Generate PDF invoice ----
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
-
-    p.setFont("Helvetica-Bold", 18)
-    p.drawString(50, 750, f"Invoice for Order #{order.id}")
-
-    p.setFont("Helvetica", 12)
-    p.drawString(50, 720, f"Customer: {request.user.username}")
-    p.drawString(50, 700, f"Delivery Address: {delivery_address.street_address}, {delivery_address.city}")
-    p.drawString(50, 680, "Items:")
-
-    y = 660
-    for item in cart_items:
-        line = f"{item.product.name} - Qty: {item.quantity} - ₹{item.product.price}"
-        p.drawString(60, y, line)
-        y -= 20
-
-    p.drawString(50, y - 20, f"Total Amount: ₹{total_price}")
-    p.drawString(50, y - 40, f"Order Status: {order.status}")
-    p.drawString(50, y - 60, f"Delivery Status: {delivery.get_status_display()}")
-
-    p.showPage()
-    p.save()
-
-    buffer.seek(0)
-
     # ---- Clear cart after placing order ----
     cart_obj.items.all().delete()
     cart_obj.active = False
@@ -148,10 +117,7 @@ def place_order(request):
 
     messages.success(request, "Order placed successfully! You can track your delivery now.")
 
-    # ---- Return invoice PDF ----
-    response = HttpResponse(buffer, content_type="application/pdf")
-    response['Content-Disposition'] = f'attachment; filename="invoice_order_{order.id}.pdf"'
-    return response
+    return redirect("order_detail", order_id=order.id)
 
 def home(request):
     redirect_response = redirect_for_role(request)
